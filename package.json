@@ -1,0 +1,32 @@
+{
+  "name": "assignment-2",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch ./src/server.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Tamjid388/vehicle-rental-backend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Tamjid388/vehicle-rental-backend/issues"
+  },
+  "homepage": "https://github.com/Tamjid388/vehicle-rental-backend#readme",
+  "description": "",
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "@types/pg": "^8.15.6",
+    "dotenv": "^17.2.3",
+    "express": "^5.2.1",
+    "pg": "^8.16.3"
+  }
+}
