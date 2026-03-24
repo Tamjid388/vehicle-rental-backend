@@ -14,24 +14,33 @@ const createBooking = async (req: Request, res: Response) => {
   } catch (error: any) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Vehicle retrieved failed",
+      message: error.message || "Booking created failed",
     });
   }
 };
 
 const getAllBookings = async (req: Request, res: Response) => {
   try {
-    const result = await bookingService.getAllBookings();
+    const role = req.user?.role;
+    const userId = req.user?.id;
 
-    return res.status(201).json({
+    
+    const data = await bookingService.getAllBookings(role as string, userId as string);
+
+    
+    const message = role === "admin" 
+      ? "Bookings retrieved successfully" 
+      : "Your bookings retrieved successfully";
+
+    return res.status(200).json({
       success: true,
-      message: "Booking created successfully",
-      data: result.rows,
+      message,
+      data,
     });
   } catch (error: any) {
     return res.status(500).json({
       success: false,
-      message: error.message || "Vehicle retrieved failed",
+      message: error.message || "Bookings retrieval failed",
     });
   }
 };
@@ -53,6 +62,7 @@ const updateBooking = async (req: Request, res: Response) => {
 
     return res.status(201).json({
       success: true,
+       message: "Booking cancelled successfully",
     });
   } catch (error: any) {
     return res.status(500).json({

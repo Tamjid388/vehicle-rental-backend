@@ -19,6 +19,9 @@ const getAllusers = async (req: Request, res: Response) => {
 const updateUserByuserId = async (req: Request, res: Response) => {
   const id = req.params.userId;
   const userInfo = req.body;
+  const user = req?.user?.id;
+  const userRole = req?.user?.role;
+
   try {
     if (!id) {
       return res.json({
@@ -26,6 +29,15 @@ const updateUserByuserId = async (req: Request, res: Response) => {
         message: "User Id Required",
       });
     }
+    if (userRole === "customer") {
+      if (id !== user) {
+        return res.status(403).json({
+          success: false,
+          message: "Forbidden: You can only update your own account",
+        });
+      }
+    }
+
     const result = await usersServices.updateUserByuserId(id, userInfo);
     if (result === null) {
       return res.status(400).json({
@@ -48,6 +60,7 @@ const updateUserByuserId = async (req: Request, res: Response) => {
 
 const DeleteUserByuserId = async (req: Request, res: Response) => {
   const id = req.params.userId;
+
   try {
     if (!id) {
       return res.json({

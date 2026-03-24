@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { pool } from "../../config/db";
 
 interface TBooking {
@@ -88,13 +89,44 @@ const createBooking = async (body: TBooking) => {
   }
 };
 
-const getAllBookings = async () => {
-  return await pool.query(`
-    SELECT * FROM bookings 
-    INNER JOIN vehicles ON
-    bookings.vehicle_id= vehicles.id
-    `);
+const getAllBookings = async (role: string, userId: string) => {
+  let queryText = "";
+  let queryParams: any[] = [];
+
+  if (role === "admin") {
+    queryText = `
+      SELECT 
+        b.id, b.customer_id, b.vehicle_id, 
+        b.rent_start_date::TEXT, b.rent_end_date::TEXT, 
+        b.total_price::FLOAT, b.status,
+        jsonb_build_object('name', u.name, 'email', u.email) AS customer,
+        jsonb_build_object('vehicle_name', v.vehicle_name, 'registration_number', v.registration_number) AS vehicle
+      FROM bookings b
+      JOIN users u ON b.customer_id = u.id
+      JOIN vehicles v ON b.vehicle_id = v.id
+    `;
+  } else {
+    queryText = `
+      SELECT 
+        b.id, b.vehicle_id, 
+        b.rent_start_date::TEXT, b.rent_end_date::TEXT, 
+        b.total_price::FLOAT, b.status,
+        jsonb_build_object(
+          'vehicle_name', v.vehicle_name, 
+          'registration_number', v.registration_number, 
+          'type', v.type
+        ) AS vehicle
+      FROM bookings b
+      JOIN vehicles v ON b.vehicle_id = v.id
+      WHERE b.customer_id = $1
+    `;
+    queryParams = [userId];
+  }
+
+  const result = await pool.query(queryText, queryParams);
+  return result.rows;
 };
+
 type TBookingUpdate = {
   status: "cancelled" | "returned";
 };
@@ -120,24 +152,26 @@ const updateBooking = async (
     const isAdmin = role === "admin";
     const customer_id = booking.customer_id;
 
-
-    //for customer
-//     if (!isAdmin && booking.customer_id !== loggedInUserId) {
-//   throw new Error("Unauthorized");
-// }
     if (!isAdmin && body.status === "cancelled") {
-      const startDate = booking.rent_start_date;
-      const today = new Date().toISOString().split("T")[0]!;
+      const startDate = dayjs(booking.rent_start_date).toISOString();
+      const today = dayjs(new Date()).toISOString();
+      console.log(startDate, today);
       if (startDate > today) {
-        console.log("You can cancel the booking");
         await client.query(
           `
       UPDATE bookings
       SET status=$1
-      WHERE id=$2
+      WHERE id=$2 returning *
       `,
           [body.status, bookingId],
         );
+
+          const updateVehicleResult = await client.query(
+        `UPDATE vehicles
+         SET availability_status='available'
+          WHERE id=$1`,
+        [booking.vehicle_id],
+      );
       } else {
         throw new Error(
           "Cancellation not allowed. You needed to cancel at least 1 day before start date.",
@@ -162,14 +196,13 @@ const updateBooking = async (
           WHERE id=$1 RETURNING *`,
         [booking.vehicle_id],
       );
-      
     }
-    await client.query("COMMIT")
+    await client.query("COMMIT");
   } catch (error) {
-     await client.query("ROLLBACK");
+    await client.query("ROLLBACK");
     throw error;
-  }finally{
-     client.release();
+  } finally {
+    client.release();
   }
 };
 

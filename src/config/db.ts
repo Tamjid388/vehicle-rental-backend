@@ -23,7 +23,7 @@ const initDB = async () => {
       vehicle_name VARCHAR(150),
       type VARCHAR(100),
       registration_number VARCHAR(150),
-      daily_rent_price NUMERIC(10,2),
+      daily_rent_price FLOAT,
       availability_status VARCHAR(100)
       )
       `);

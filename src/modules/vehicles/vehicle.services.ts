@@ -1,12 +1,7 @@
 import { pool } from "../../config/db";
+import { UpdateVehicleType, VehicleType } from "./vehicle.interface";
 
-type VehicleType = {
-  vehicle_name: string,
-  type: string,
-  registration_number: string,
-  daily_rent_price: number,
-  availability_status: string,
-};
+
 const createVehicle = async (
   vehicle: VehicleType
 ) => {
@@ -45,7 +40,35 @@ const getvehicleById=async(vehicleId:string)=>{
     `,[vehicleId])
   return result
 }
+const updateVehicleById=async(payload:UpdateVehicleType,id:string)=>{
+  const {vehicle_name,type,registration_number,daily_rent_price,availability_status}=payload
+  const result=await pool.query(`
+      UPDATE vehicles SET
+      vehicle_name=$1,
+      type=$2,
+      registration_number=$3,
+      daily_rent_price=$4,
+      availability_status=$5
+      WHERE id=$6
+      RETURNING *
+    `,[
+      vehicle_name,
+      type,
+      registration_number,
+      daily_rent_price,
+      availability_status,
+      id
+    ])
+  return result
+}
+
+const deleteVehicleById=async(id:string)=>{
+  const result=await pool.query(`
+      DELETE FROM vehicles WHERE id=$1
+    `,[id])
+  return result
+}
 
 export const vehicleServices = {
-  createVehicle,getAllvehicles,getvehicleById
+  createVehicle,getAllvehicles,getvehicleById,updateVehicleById,deleteVehicleById
 };

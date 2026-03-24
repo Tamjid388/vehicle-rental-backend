@@ -9,9 +9,11 @@ interface TUser {
 
 const getAllusers = async () => {
   const result = await pool.query(`
-    SELECT * FROM users
-    `);
-  return result;
+    SELECT id, name, email, phone, role 
+    FROM users
+  `);
+
+  return result
 };
 
 const updateUserByuserId = async (id: string, userInfo: TUser) => {
@@ -35,6 +37,7 @@ const updateUserByuserId = async (id: string, userInfo: TUser) => {
 };
 
 const DeleteUserByuserId = async (id: string) => {
+  
   const query = `
     DELETE FROM users
     WHERE id=$1

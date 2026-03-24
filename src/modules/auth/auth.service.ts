@@ -29,20 +29,20 @@ const signInUser = async (email: string, password: string) => {
     `,
     [email]
   );
-  const user = result.rows[0];
-  const matchpassword = await bcrypt.compare(password, user.password);
+  const currentUser = result.rows[0];
+  const matchpassword = await bcrypt.compare(password, currentUser.password);
   if (!matchpassword) {
     return false;
   }
   const payload = {
-    id: user.id,
-    name: user.name,
-    email: user.email,
-    role: user.role,
+    id: currentUser.id,
+    name: currentUser.name,
+    email: currentUser.email,
+    role: currentUser.role,
   };
   const token = jwt.sign(payload, config.secret as string, { expiresIn: "7d" });
-  const { password: pwd, ...safeUser } = user;
-  return { token, safeUser };
+  const { password: pwd, ...user } = currentUser;
+  return { token, user };
 };
 
 export const authServices = {
